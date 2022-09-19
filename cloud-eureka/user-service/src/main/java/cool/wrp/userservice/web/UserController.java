@@ -21,11 +21,8 @@ public class UserController {
 
     private final UserMapper userMapper;
 
-    private int i = 1;
-
     @GetMapping("/{id}")
     public User queryById(@PathVariable("id") Long id) {
-        System.out.println("**********"+i++);
         return new LambdaQueryChainWrapper<>(userMapper)
                 .eq(User::getId, id)
                 .one();
