@@ -14,3 +14,13 @@ eureka:
   client:
     service-url:
       defaultZone: http://localhost:8080/eureka
+
+# 配置文件方式指定负载均衡策略，更灵活一些，能针对特定模块设置负载均衡策略
+user-service:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
+
+ribbon:
+  eager-load:
+    enabled: true # 开启饥饿加载
+    clients: user-service # 指定对userservice这个服务饥饿加载

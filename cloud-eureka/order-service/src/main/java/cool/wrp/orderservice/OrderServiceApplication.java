@@ -1,5 +1,7 @@
 package cool.wrp.orderservice;
 
+import com.netflix.loadbalancer.IRule;
+import com.netflix.loadbalancer.RoundRobinRule;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -25,4 +27,12 @@ public class OrderServiceApplication {
     public RestTemplate rt() {
         return new RestTemplate();
     }
+
+    /**
+     * 配置默认负载均衡策略
+     */
+//    @Bean
+//    public IRule rule() {
+//        return new RoundRobinRule();
+//    }
 }
