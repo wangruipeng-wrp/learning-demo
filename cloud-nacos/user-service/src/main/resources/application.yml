@@ -1,0 +1,18 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/eureka_demo_user
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+  cloud:
+    nacos:
+#      server-addr: localhost:8848 # 配置 nacos 服务端地址
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: localhost:8848 # 配置 nacos 服务端地址
