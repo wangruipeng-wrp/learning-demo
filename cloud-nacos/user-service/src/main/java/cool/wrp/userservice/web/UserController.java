@@ -3,6 +3,7 @@ package cool.wrp.userservice.web;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import cool.wrp.feignapi.pojo.User;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +31,5 @@ public class UserController {
 
     interface UserMapper extends BaseMapper<User> {
 
-    }
-
-    @Data
-    @TableName("tb_user")
-    private static class User {
-        private Long id;
-        private String username;
-        private String address;
     }
 }
