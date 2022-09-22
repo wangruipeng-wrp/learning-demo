@@ -14,7 +14,7 @@ spring:
 #      server-addr: localhost:8848 # 配置 nacos 服务端地址
       discovery:
         cluster-name: HZ # 配置集群信息
-        namespace: 7966bd9d-bc31-43bc-816e-044781c444a9 # 命名空间ID
+        namespace: public # 命名空间ID
         username: nacos
         password: nacos
         server-addr: localhost:8848 # 配置 nacos 服务端地址

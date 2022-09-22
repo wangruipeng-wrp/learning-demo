@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: user-service # 服务名称
+  profiles:
+    active: dev #开发环境，这里是dev
+  cloud:
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: localhost:8848 # 配置 nacos 服务端地址
+      config:
+        file-extension: yml # 文件后缀名
