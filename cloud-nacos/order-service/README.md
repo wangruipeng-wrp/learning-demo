@@ -73,6 +73,8 @@ public class OrderServiceApplication {
 @EnableFeignClients(clients = {UserClient.class})
 ```
 
+> 注意：两种方式不可以同时使用，否则无法启动。
+
 3. 在需要使用的类中注入对应的 Client 接口后正常使用即可。
 
 注入：
