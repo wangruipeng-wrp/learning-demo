@@ -6,7 +6,6 @@ import cool.wrp.feignapi.clients.UserClient;
 import cool.wrp.feignapi.pojo.Order;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/order")
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-@EnableFeignClients(clients = {UserClient.class})
 public class OrderController {
 
     private final OrderMapper orderMapper;

@@ -5,7 +5,7 @@ spring:
   application:
     name: order-service
   datasource:
-    url: jdbc:mysql://localhost:3306/eureka_demo_order
+    url: jdbc:mysql://localhost:3306/eureka_demo_order?useSSL=false
     username: root
     password: root
     driver-class-name: com.mysql.jdbc.Driver
@@ -19,6 +19,10 @@ spring:
         password: nacos
         server-addr: localhost:8848 # 配置 nacos 服务端地址
 
-userservice:
+user-service:
   ribbon:
     NFLoadBalancerRuleClassName: com.alibaba.cloud.nacos.ribbon.NacosRule # 同集群内优先的负载均衡规则
+
+logging:
+  level:
+    cool.wrp.feignapi.clients: DEBUG
