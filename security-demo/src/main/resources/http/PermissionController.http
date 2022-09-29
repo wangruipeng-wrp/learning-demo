@@ -1,0 +1,9 @@
+### USER 用户访问
+
+GET http://localhost:8080/api/user
+Authorization:
+
+### ADMIN 用户访问
+
+GET http://localhost:8080/api/admin
+Authorization:

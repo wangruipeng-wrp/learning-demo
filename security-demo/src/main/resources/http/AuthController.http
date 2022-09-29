@@ -1,0 +1,30 @@
+### 登录接口，请求 user Token
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "loginAccount": "user",
+  "password": 123456
+}
+
+### 登录接口，请求 admin Token
+
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+"loginAccount": "admin",
+"password": 123456
+}
+
+### 退出登录接口：user 退出登录
+
+POST http://localhost:8080/api/auth/logout
+Authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwiUkVGUkVTSF9USU1FIjoxNjY0NTIyMzk4LCJleHAiOjE2NjQ0MzU5OTgsImlhdCI6MTY2NDQzNDE5OH0.boKbpOCkRIi0tXbxyoWBqmfqU7-AdwzDhGHS_m_Xeiw
+
+### 退出登录接口：admin 退出登录
+
+POST http://localhost:8080/api/auth/logout
+Authorization: BearereyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3IiwiUkVGUkVTSF9USU1FIjoxNjY0NTIyNjkzLCJleHAiOjE2NjQ0MzYyOTMsImlhdCI6MTY2NDQzNDQ5M30.s7PX6gwXGANXCwCN4Tt3wIVoBpEBU1_VNHnpjNNDDuc
+
