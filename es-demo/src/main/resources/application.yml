@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: es-demo
+  datasource:
+    url: jdbc:mysql://mysql:3306/es_demo?useSSL=false
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+logging:
+  level:
+    cool.wrp.esdemo: DEBUG
