@@ -46,14 +46,14 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             return;
         }
 
-        log.info("JWT过滤器开始校验 Token");
+        log.debug("JWT过滤器开始校验 Token");
 
         // 请求的 token 信息
         String authToken = JwtUtil.getToken(request);
 
         // 判断 token 是否合法
         if (authToken == null || "".equals(authToken) || !authToken.startsWith(JwtConstant.TOKEN_PREFIX)) {
-            log.info("JWT过滤器校验结果：此 Token 不合法。");
+            log.debug("JWT过滤器校验结果：此 Token 不合法。");
             fail(response, ApiResult.instance(ApiStatus.UNAUTHORIZED));
             return;
         }
@@ -64,7 +64,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         // 判断用户登录是否已过期
         LoginUser loginUser = cache.get(CacheName.USER, loginAccount, LoginUser.class);
         if (loginUser == null) {
-            log.info("JWT过滤器校验结果：未从缓存中找到此 Token，验证为未登录或已过期。");
+            log.debug("JWT过滤器校验结果：未从缓存中找到此 Token，验证为未登录或已过期。");
             fail(response, ApiResult.instance(ApiStatus.UNAUTHORIZED));
             return;
         }

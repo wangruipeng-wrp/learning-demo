@@ -18,12 +18,7 @@ public class JwtConstant {
     /**
      * 可刷新时间-默认过期时间 + 1 天
      */
-    public static final Long REFRESH_TIME = 86400L;
-
-    /**
-     * 可刷新时间字段名称
-     */
-    public static final String CLAIM_REFRESH_TIME = "REFRESH_TIME";
+    public static final Long REFRESH_TIME = 86_400_000L;
 
     /**
      * 默认存放token的请求头

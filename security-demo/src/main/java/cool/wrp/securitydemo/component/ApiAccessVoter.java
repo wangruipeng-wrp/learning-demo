@@ -37,7 +37,7 @@ public class ApiAccessVoter implements AccessDecisionVoter<FilterInvocation> {
 
     @PostConstruct
     public void init() {
-        log.info("ApiAccessVoter 初始化工作开始...");
+        log.debug("ApiAccessVoter 初始化工作开始...");
         List<PermissionEntity> permissionList = new LambdaQueryChainWrapper<>(permissionMapper)
                 .select(PermissionEntity::getPermissionUri,
                         PermissionEntity::getPermissionMethod,
@@ -51,7 +51,7 @@ public class ApiAccessVoter implements AccessDecisionVoter<FilterInvocation> {
             cache.put(CacheName.PERMISSION, permissionValue, isActive);
             map.put(permissionValue, isActive);
         }
-        log.info("ApiAccessVoter 初始化工作完成，缓存权限数据如下：\n{}", map);
+        log.debug("ApiAccessVoter 初始化工作完成，缓存权限数据如下：\n{}", map);
     }
 
     @Override
@@ -74,20 +74,22 @@ public class ApiAccessVoter implements AccessDecisionVoter<FilterInvocation> {
         String method = fi.getRequest().getMethod();
         String apiPermissionValue = requestUrl + ":" + method;
 
-        log.info("ApiAccessVoter 开始投票，用户：[{}]，请求接口：[{}]",loginUser.getUsername(), apiPermissionValue);
+        log.debug("ApiAccessVoter 开始投票");
 
         final Integer isActive = cache.get(CacheName.PERMISSION, apiPermissionValue, Integer.class);
         if (isActive == null || isActive != 1) {
-            log.info("ApiAccessVoter 弃权");
+            log.info("ApiAccessVoter 弃权，接口：[{}]，未被保护。", apiPermissionValue);
             // 未保护此 API，弃权
             return ACCESS_ABSTAIN;
         }
 
         if (loginUser.getPermissions().contains(apiPermissionValue)) {
-            log.info("ApiAccessVoter 赞成");
+            log.info("ApiAccessVoter 赞成，接口：[{}]，用户ID：[{}]，用户名：[{}]",
+                    apiPermissionValue, loginUser.getUserId(), loginUser.getUsername());
             return ACCESS_GRANTED;
         } else {
-            log.info("ApiAccessVoter 反对");
+            log.info("ApiAccessVoter 反对，接口：[{}]，用户ID：[{}]，用户名：[{}]",
+                    apiPermissionValue, loginUser.getUserId(), loginUser.getUsername());
             return ACCESS_DENIED;
         }
     }

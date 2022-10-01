@@ -17,6 +17,6 @@ public class AccessToken {
     private Long userId;
     private String token;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date expiresAt;
 }

@@ -36,7 +36,6 @@ public class JwtUtil {
                 .withIssuedAt(now)
                 .withExpiresAt(expirationDate)
                 .withSubject(String.valueOf(payLoad.getUserId()))
-                .withClaim(JwtConstant.CLAIM_REFRESH_TIME, refreshDate)
                 .sign(Algorithm.HMAC256(JwtConstant.API_SECRET_KEY));
 
         return AccessToken.builder()
@@ -59,6 +58,8 @@ public class JwtUtil {
 
     /**
      * 验证 token
+     *
+     * @return JWT 所储存的信息
      */
     private static DecodedJWT verify(String token) {
         if (token == null || "".equals(token)) {
@@ -79,20 +80,23 @@ public class JwtUtil {
         final DecodedJWT claims = verify(token);
         final Date now = new Date();
 
-        Date expiresDate = claims.getExpiresAt();
-        if (now.before(expiresDate)) {
-//            return AccessToken.builder()
-//                    .userId(Long.valueOf(claims.getSubject()))
-//                    .token(token)
-//                    .expiresAt(claims.getExpiresAt())
-//                    .build();
+        final Date expiresTime = claims.getExpiresAt();
+        if (now.before(expiresTime)) {
+            return AccessToken.builder()
+                    .userId(Long.valueOf(claims.getSubject()))
+                    .token(token)
+                    .expiresAt(claims.getExpiresAt())
+                    .build();
         }
 
-        Date refreshDate = (Date) claims.getClaim(JwtConstant.CLAIM_REFRESH_TIME);
-        if (refreshDate == null || now.after(refreshDate)) {
+        final Date refreshTime = new Date(expiresTime.getTime() + JwtConstant.REFRESH_TIME);
+        if (now.after(refreshTime)) {
             throw new NotAllowRefreshTokenException();
         }
 
-        return createToken(new JwtPayLoad(Long.valueOf(claims.getSubject())));
+        JwtPayLoad payLoad = JwtPayLoad.builder()
+                .userId(Long.valueOf(claims.getSubject()))
+                .build();
+        return createToken(payLoad);
     }
 }

@@ -43,7 +43,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ApiResult login(@Valid @RequestBody LoginInfo loginInfo) {
-        log.info("{} 用户开始登录。", loginInfo.getLoginAccount());
+        log.debug("{} 用户开始认证。", loginInfo.getLoginAccount());
 
         // 认证
         final UsernamePasswordAuthenticationToken authToken =
@@ -51,14 +51,17 @@ public class AuthController {
         final Authentication authenticate = am.authenticate(authToken);
         SecurityContextHolder.getContext().setAuthentication(authenticate);
 
-        log.info("{} 用户成功登录。", loginInfo.getLoginAccount());
+        log.info("{} 用户成功认证。", loginInfo.getLoginAccount());
 
         // 放入缓存
         LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
         cache.put(CacheName.USER, String.valueOf(loginUser.getUserId()), loginUser);
 
         // 生成 token
-        AccessToken accessToken = JwtUtil.createToken(new JwtPayLoad(loginUser));
+        JwtPayLoad payLoad = JwtPayLoad.builder()
+                .userId(loginUser.getUserId())
+                .build();
+        AccessToken accessToken = JwtUtil.createToken(payLoad);
         return ApiResult.success(accessToken);
     }
 
