@@ -2,7 +2,7 @@ spring:
   application:
     name: es-demo
   datasource:
-    url: jdbc:mysql://mysql:3306/es_demo?useSSL=false
+    url: jdbc:mysql:///es_demo?characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -10,3 +10,7 @@ spring:
 logging:
   level:
     cool.wrp.esdemo: DEBUG
+
+# 自定义 es 配置
+es:
+  host: http://192.168.160.131:9200

@@ -1,132 +1,154 @@
-# docker 安装 es
+# Elasticsearch 概念简介
 
-kibana 需要与 es 服务端互相通信，所以先构建一个 docker network
+## 文档和字段
 
-```bash
-docker network create es-net
+ES是面向 **文档（Document）** 存储的，文档可以是数据库中的一条商品数据，一个订单信息。文档数据会被序列化为json格式后存储在elasticsearch中：
+
+**数据库中的数据：**
+
+| ID  | title | price |
+|:---:|:-----:|:-----:|
+|  1  | 小米手机  | 3499  |
+|  2  | 华为手机  | 4999  | 
+|  3  | 苹果手机  | 5999  | 
+
+**ES 中的文档：**
+
+```json lines
+{
+  "id": 1,
+  "title": "小米手机",
+  "price": 3499
+}
+{
+  "id": 2,
+  "title": "华为手机",
+  "price": 4999
+}
+{
+  "id": 1,
+  "title": "苹果手机",
+  "price": 5999
+}
 ```
 
-## 安装 es 服务端
+## 索引和映射
 
-下载启动即可，启动命令如下：
+**索引（Index）**，就是相同类型的文档的集合。
 
-```bash
-docker run -d \
-    --name es \
-    -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
-    -e "discovery.type=single-node" \
-    -v es-data:/usr/share/elasticsearch/data \
-    -v es-plugins:/usr/share/elasticsearch/plugins \
-    --privileged \
-    --network es-net \
-    -p 9200:9200 \
-    -p 9300:9300 \
-elasticsearch:7.12.1
-```
+**例如：**
 
-启动命令参数解释：
+- 所有用户文档，就可以组织在一起，称为用户的索引；
+- 所有商品的文档，可以组织在一起，称为商品的索引；
+- 所有订单的文档，可以组织在一起，称为订单的索引；
 
-| 命令 | 含义                |
-| :---- |:-----|
-| `-e "cluster.name=es-docker-cluster"` | 设置集群名称            |
-| `-e "http.host=0.0.0.0"` | 监听的地址，可以外网访问      |
-| `-e "ES_JAVA_OPTS=-Xms512m -Xmx512m"` | 内存大小              |
-| `-e "discovery.type=single-node"` | 非集群模式             |
-| `-v es-data:/usr/share/elasticsearch/data` | 挂载逻辑卷，绑定es的数据目录   |
-| `-v es-logs:/usr/share/elasticsearch/logs` | 挂载逻辑卷，绑定es的日志目录   |
-| `-v es-plugins:/usr/share/elasticsearch/plugins` | 挂载逻辑卷，绑定es的插件目录   |
-| `--privileged` | 授予逻辑卷访问权          |
-| `--network es-net` | 加入一个名为es-net的网络中  |
-| `-p 9200:9200` | 端口映射配置            |
+![索引映射举例图](./doc/images/索引映射举例图.png)
 
-> 在浏览器中输入：`http://ip:9200` 即可看到 elasticsearch 的响应结果
+因此，我们可以把索引当做是数据库中的表。
+数据库的表会有约束信息，用来定义表的结构、字段的名称、类型等信息。因此，索引库中就有**映射（mapping）**，是索引中文档的字段约束信息，类似表的结构约束。
 
-## 安装 kibana
+## MySQL 与 ES 概念对比
 
-> kibana 安装时版本需要与 es 保持一致。 
+| **MySQL** | **Elasticsearch** | **说明**                                          |
+|:----------|:------------------|:------------------------------------------------|
+| Table     | Index             | 索引(index)，就是文档的集合，类似数据库的表(table)                |
+| Row       | Document          | 文档（Document），就是一条条的数据，类似数据库中的行（Row），文档都是JSON格式  |
+| Column    | Field             | 字段（Field），就是JSON文档中的字段，类似数据库中的列（Column）         |
+| Schema    | Mapping           | Mapping（映射）是索引中文档的约束，例如字段类型约束。类似数据库的表结构（Schema） |
+| SQL       | DSL               | DSL是ES提供的JSON风格的请求语句，用来操作ES，实现CRUD              |
 
-kibana可以给我们提供一个elasticsearch的可视化界面，便于我们学习。
+# 倒排索引简介
 
-docker 下载安装即可，启动命令如下：
+## 正向索引
 
-```bash
-docker run -d \
-    --name kibana \
-    -e ELASTICSEARCH_HOSTS=http://es:9200 \
-    --network=es-net \
-    -p 5601:5601  \
-kibana:7.12.1
-```
+根据 ID 创建索引，如果根据 ID 查询数据，直接走索引，速度非常快。但如果是基于title做模糊查询，只能是逐行扫描数据，流程如下：
 
-启动参数说明：
+1. 用户搜索数据，条件是title符合 `%手机%`
+2. 逐行获取数据，比如id为1的数据
+3. 判断数据中的title是否符合用户搜索条件
+4. 如果符合则放入结果集，不符合则丢弃。回到步骤1
 
-| 命令 | 含义                |
-| :---- |:-----|
-| `--network es-net` | 加入一个名为es-net的网络中，与elasticsearch在同一个网络中 | 
-| `-e ELASTICSEARCH_HOSTS=http://es:9200"` | 设置elasticsearch的地址，因为kibana已经与elasticsearch在一个网络，因此可以用容器名直接访问elasticsearch | 
-| `-p 5601:5601` | 端口映射配置 | 
+逐行扫描，也就是全表扫描，随着数据量增加，其查询效率也会越来越低。当数据量达到数百万时，就是一场灾难。
 
-> 在浏览器中输入：`http://ip:5601` 即可看到 kibana 的响应结果
+## 倒排索引
 
-Management 目录下 Dev Tools 选项可以操作 es 服务端。
+**词条（`Term`）**：对文档数据或用户搜索数据，利用某种算法分词，得到的具备含义的词语就是词条。
 
-## 安装 IK 分词器
+> 例如：我是中国人，就可以分为：我、是、中国人、中国、国人这样的几个词条
 
-### 在线安装
+**创建倒排索引**是对正向索引的一种特殊处理，流程如下：
 
-1. 进入容器内部
+- 将每一个文档的数据利用算法分词，得到一个个词条
+- 创建表，每行数据包括词条、词条所在文档id、位置等信息
+- 因为词条唯一性，可以给词条创建索引，例如hash表结构索引
 
-```bash
-docker exec -it elasticsearch /bin/bash
-```
+由上文数据表所创建的倒排索引可以是：
 
-2. 在线下载并安装
+| 词条（term） | 文档ID   |
+|:---------|:-------|
+| 小米       | 1      | 
+| 华为       | 2      |
+| 苹果       | 3      | 
+| 手机       | 1、2、3  |
 
-```bash
-# 下载安装
-./bin/elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.12.1/elasticsearch-analysis-ik-7.12.1.zip
+倒排索引的**搜索流程**如下（以搜索"华为手机"为例）：
 
-# 退出
-exit
+1. 用户输入条件`"华为手机"`进行搜索。
+2. 对用户输入内容**分词**，得到词条：`华为`、`手机`。
+3. 拿着词条在倒排索引中查找，可以得到包含词条的文档id：1、2、3，其中 ID=2 出现了两次，算分时会相应高分一些。
+4. 可以拿着文档id到正向索引中查找具体文档或者直接返回文档中的其他数据。
 
-# 重启容器
-docker restart elasticsearch
-```
+## 优缺点对比
 
-### 离线安装
+|     | 正向索引                              | 倒排索引                           |
+|-----|-----------------------------------|--------------------------------|
+| 优点  | 可以给多个字段创建索引<br/> 根据索引字段搜索、排序速度非常快 | 根据词条搜索、模糊搜索时，速度非常快             |
+| 缺点  | 根据非索引字段，或者索引字段中的部分词条查找时，只能全表扫描。   | 只能给词条创建索引，而不是字段<br/> 无法根据字段做排序 |
 
-上传下载好的安装包到 es 的 plugins 目录下并解压重命名为 `ik`，重启容器即可。
+# 使用文档指引
 
-### IK 分词器的两种分词模式
+- [使用Docker安装Elasticsearch](./doc/0、使用Docker安装Elasticsearch.md)
+  - **包括：**
+  - 安装 Elasticsearch 服务端
+  - 安装 Elasticsearch 管理工具 kibana
+  - 安装 IK分词器 和 拼音分词器
+- [DSL操作索引](./doc/1、DSL操作索引.md)
+  - **包括：**
+  - mapping 的属性、字段的数据类型
+  - 如何创建索引和映射
+  - 如何自定义分词器
+  - 如何修改、查看和删除索引
+- [DSL操作文档](./doc/2、DSL操作文档.md)
+  - **包括：**
+  - 新增、修改和删除文档
+- [DSL搜索文档](./doc/3、DSL搜索文档.md)
+  - **包括：**
+  - `copy_to` 的用法
+  - 全文搜索，需要分词：查询所有、单字段查询和多字段查询
+  - 精确搜索，term：只能搜确定的字段，数据类型必须是数值、布尔、日期或对象；字符串则必须是 keyword
+  - 精确搜索，range：范围查询
+  - 精确搜索，地理坐标：矩形范围查询（geo_bounding_box）和距离查询（geo_distance）
+  - bool搜索：组合搜索
+  - 相关性算分：给搜索结果算分，按照分数排序
+  - 聚合搜素：相当于 MySQL 的 group by
+  - 自动补全搜索：给用户输入显示提示
+- [DSL搜索结果](./doc/4、DSL搜索结果.md)
+  - **包括：**
+  - 结果排序
+  - 分页，包含深度分页的解决方式
+  - 关键词高亮
 
-- `ik_smart`：最少切分
-- `ik_max_word`：最细切分
+---
 
-### 扩展词和停用词
+最后针对以上有一个小 demo：黑马旅游的搜索功能实现。 小demo搭建流程：
 
-ik 目录下的 config 文件夹，里面的 `IKAnalyzer.cfg.xml` 文件可以配置 扩展词和停用词。
+1. 导入 tb_hotel.sql 文件
+2. 配置 application.yml 的 es.host
+3. 运行：`EsDemoApplicationTests.testCreateIndex()`
+4. 运行：`EsDemoApplicationTests.testBulkRequest()`
+5. 启动 EsDemoApplication
+6. 启动服务后浏览器输入 http://localhost:8080 即可查看
 
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties>
-        <comment>IK Analyzer 扩展配置</comment>
-        <!--用户可以在这里配置自己的扩展字典 -->
-        <entry key="ext_dict">ext_dict.dic</entry>
-         <!--用户可以在这里配置自己的扩展停止词字典-->
-        <entry key="ext_stopwords">extra_stopword.dic</entry>
-        <!--用户可以在这里配置远程扩展字典 -->
-        <!-- <entry key="remote_ext_dict">words_location</entry> -->
-        <!--用户可以在这里配置远程扩展停止词字典-->
-        <!-- <entry key="remote_ext_stopwords">words_location</entry> -->
-</properties>
-```
+# 参考
 
-# DSL 操作 es
-
-## DSL 操作索引
-
-
-
-## DSL 操作文档
-
+[B站-黑马程序员](https://www.bilibili.com/video/BV1LQ4y127n4/?spm_id_from=333.337.search-card.all.click&vd_source=f46f487a38531c298d4fcdf33dc45ec9)

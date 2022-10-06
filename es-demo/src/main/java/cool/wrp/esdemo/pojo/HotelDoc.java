@@ -3,6 +3,9 @@ package cool.wrp.esdemo.pojo;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * es hotel 索引实体类
  * @author 码小瑞
@@ -19,8 +22,11 @@ public class HotelDoc {
     private String city;
     private String starName;
     private String business;
+    private Object distance;
     private String location;
     private String pic;
+    private Boolean isAd;
+    private List<String> suggestion;
 
     public HotelDoc(HotelEntity hotel) {
         this.id = hotel.getId();
@@ -34,5 +40,12 @@ public class HotelDoc {
         this.business = hotel.getBusiness();
         this.location = hotel.getLatitude() + ", " + hotel.getLongitude();
         this.pic = hotel.getPic();
+        this.isAd = hotel.getIsAd();
+        this.suggestion = Arrays.asList(
+                hotel.getName(),
+                hotel.getBrand(),
+                hotel.getBusiness(),
+                hotel.getCity(),
+                hotel.getStarName());
     }
 }

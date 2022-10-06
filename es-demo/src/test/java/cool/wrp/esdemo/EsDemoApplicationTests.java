@@ -24,6 +24,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
@@ -33,7 +34,10 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 class EsDemoApplicationTests {
 
-    private RestHighLevelClient client;
+    @Value("${es.host}")
+    private String esHost;
+
+    private RestHighLevelClient esClient;
     private final HotelMapper hotelMapper;
 
     @Test
@@ -42,15 +46,15 @@ class EsDemoApplicationTests {
 
     @BeforeEach
     void setUp() {
-        client = new RestHighLevelClient(RestClient.builder(
-                HttpHost.create("http://120.78.79.40:9200")
+        esClient = new RestHighLevelClient(RestClient.builder(
+                HttpHost.create(esHost)
         ));
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        if (client != null) {
-            client.close();
+        if (esClient != null) {
+            esClient.close();
         }
     }
 
@@ -63,56 +67,63 @@ class EsDemoApplicationTests {
         // 2.准备请求参数
         String json = "{\n" +
                 "  \"mappings\": {\n" +
-                "    \"properties\": {\n" +
-                "      \"id\": {\n" +
-                "        \"type\": \"keyword\"\n" +
+                "    \"properties\" : {\n" +
+                "      \"address\" : {\n" +
+                "        \"type\" : \"keyword\",\n" +
+                "        \"index\" : false\n" +
                 "      },\n" +
-                "      \"name\": {\n" +
-                "        \"type\": \"text\",\n" +
-                "        \"analyzer\": \"ik_max_word\",\n" +
-                "        \"copy_to\": \"all\"\n" +
+                "      \"all\" : {\n" +
+                "        \"type\" : \"text\",\n" +
+                "        \"analyzer\" : \"ik_max_word\"\n" +
                 "      },\n" +
-                "      \"address\": {\n" +
-                "        \"type\": \"keyword\",\n" +
-                "        \"index\": false\n" +
+                "      \"brand\" : {\n" +
+                "        \"type\" : \"keyword\",\n" +
+                "        \"copy_to\" : [\n" +
+                "          \"all\"\n" +
+                "        ]\n" +
                 "      },\n" +
-                "      \"price\": {\n" +
-                "        \"type\": \"integer\"\n" +
+                "      \"business\" : {\n" +
+                "        \"type\" : \"keyword\",\n" +
+                "        \"copy_to\" : [\n" +
+                "          \"all\"\n" +
+                "        ]\n" +
                 "      },\n" +
-                "      \"score\": {\n" +
-                "        \"type\": \"integer\"\n" +
+                "      \"city\" : {\n" +
+                "        \"type\" : \"keyword\"\n" +
                 "      },\n" +
-                "      \"brand\": {\n" +
-                "        \"type\": \"keyword\",\n" +
-                "        \"copy_to\": \"all\"\n" +
+                "      \"id\" : {\n" +
+                "        \"type\" : \"keyword\"\n" +
                 "      },\n" +
-                "      \"city\": {\n" +
-                "        \"type\": \"keyword\"\n" +
+                "      \"location\" : {\n" +
+                "        \"type\" : \"geo_point\"\n" +
                 "      },\n" +
-                "      \"starName\": {\n" +
-                "        \"type\": \"keyword\"\n" +
+                "      \"name\" : {\n" +
+                "        \"type\" : \"keyword\",\n" +
+                "        \"copy_to\" : [\n" +
+                "          \"all\"\n" +
+                "        ]\n" +
                 "      },\n" +
-                "      \"business\": {\n" +
-                "        \"type\": \"keyword\",\n" +
-                "        \"copy_to\": \"all\"\n" +
+                "      \"pic\" : {\n" +
+                "        \"type\" : \"keyword\"\n" +
                 "      },\n" +
-                "      \"pic\": {\n" +
-                "        \"type\": \"keyword\",\n" +
-                "        \"index\": false\n" +
+                "      \"price\" : {\n" +
+                "        \"type\" : \"integer\"\n" +
                 "      },\n" +
-                "      \"location\": {\n" +
-                "        \"type\": \"geo_point\"\n" +
+                "      \"score\" : {\n" +
+                "        \"type\" : \"integer\"\n" +
                 "      },\n" +
-                "      \"all\": {\n" +
-                "        \"type\": \"text\",\n" +
-                "        \"analyzer\": \"ik_max_word\"\n" +
+                "      \"starName\" : {\n" +
+                "        \"type\" : \"keyword\"\n" +
+                "      },\n" +
+                "      \"isAd\" : {\n" +
+                "        \"type\" : \"boolean\"\n" +
                 "      }\n" +
                 "    }\n" +
                 "  }\n" +
                 "}";
         request.source(json, XContentType.JSON);
         // 3.发送请求
-        client.indices().create(request, RequestOptions.DEFAULT);
+        esClient.indices().create(request, RequestOptions.DEFAULT);
     }
 
     @Test
@@ -120,7 +131,7 @@ class EsDemoApplicationTests {
         // 1.准备Request
         GetIndexRequest request = new GetIndexRequest("hotel");
         // 3.发送请求
-        boolean isExists = client.indices().exists(request, RequestOptions.DEFAULT);
+        boolean isExists = esClient.indices().exists(request, RequestOptions.DEFAULT);
 
         System.out.println(isExists ? "存在" : "不存在");
     }
@@ -130,10 +141,9 @@ class EsDemoApplicationTests {
         // 1.准备Request
         DeleteIndexRequest request = new DeleteIndexRequest("hotel");
         // 3.发送请求
-        client.indices().delete(request, RequestOptions.DEFAULT);
+        esClient.indices().delete(request, RequestOptions.DEFAULT);
     }
 
-    /* 索引库增删改查 end */
     /* 文档增删改查 start */
 
     @Test
@@ -153,7 +163,7 @@ class EsDemoApplicationTests {
         // 2.准备请求参数DSL，其实就是文档的JSON字符串
         request.source(json, XContentType.JSON);
         // 3.发送请求
-        client.index(request, RequestOptions.DEFAULT);
+        esClient.index(request, RequestOptions.DEFAULT);
     }
 
     @Test
@@ -161,7 +171,7 @@ class EsDemoApplicationTests {
         // 1.准备 Request -> GET /hotel/_doc/{id}
         GetRequest request = new GetRequest("hotel", "61083");
         // 2.发送请求
-        GetResponse response = client.get(request, RequestOptions.DEFAULT);
+        GetResponse response = esClient.get(request, RequestOptions.DEFAULT);
         // 3.解析响应结果
         String json = response.getSourceAsString();
 
@@ -174,7 +184,7 @@ class EsDemoApplicationTests {
         // 1.准备 Request -> DELETE /hotel/_doc/{id}
         DeleteRequest request = new DeleteRequest("hotel", "61083");
         // 2.发送请求
-        client.delete(request, RequestOptions.DEFAULT);
+        esClient.delete(request, RequestOptions.DEFAULT);
     }
 
     @Test
@@ -186,7 +196,7 @@ class EsDemoApplicationTests {
                 "price", "870"
         );
         // 3.发送请求
-        client.update(request, RequestOptions.DEFAULT);
+        esClient.update(request, RequestOptions.DEFAULT);
     }
 
     /**
@@ -212,8 +222,6 @@ class EsDemoApplicationTests {
         }
 
         // 3.发送请求
-        client.bulk(request, RequestOptions.DEFAULT);
+        esClient.bulk(request, RequestOptions.DEFAULT);
     }
-
-    /* 文档增删改查 end */
 }

@@ -26,4 +26,5 @@ public class HotelEntity {
     private String longitude;
     private String latitude;
     private String pic;
+    private Boolean isAd;
 }
