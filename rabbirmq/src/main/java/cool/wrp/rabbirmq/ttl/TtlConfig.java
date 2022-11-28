@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
  * @author 码小瑞
  */
 @Configuration
-public class TtlDlxConfig {
+public class TtlConfig {
 
     /**
      * 接收死信消息的死信交换机

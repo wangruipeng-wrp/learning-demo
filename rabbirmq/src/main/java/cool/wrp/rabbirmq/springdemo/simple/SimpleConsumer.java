@@ -1,5 +1,6 @@
 package cool.wrp.rabbirmq.springdemo.simple;
 
+import com.rabbitmq.client.Channel;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
@@ -10,8 +11,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class SimpleConsumer {
-    @RabbitListener(queues = {SimpleConfig.QUEUE_NAME})
-    public void consume(String message) {
-        System.out.println("【简单模式消费者】接收到的消息是：" + message);
-    }
+//    @RabbitListener(queues = {SimpleConfig.QUEUE_NAME})
+//    public void consume(String message, Channel channel) {
+//        System.out.println("【简单模式消费者】接收到的消息是：" + message);
+//    }
 }

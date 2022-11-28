@@ -22,6 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static cn.hutool.poi.excel.sax.ElementName.v;
+
 /**
  * 接口访问投票器
  *
@@ -51,7 +53,10 @@ public class ApiAccessVoter implements AccessDecisionVoter<FilterInvocation> {
             cache.put(CacheName.PERMISSION, permissionValue, isActive);
             map.put(permissionValue, isActive);
         }
-        log.debug("ApiAccessVoter 初始化工作完成，缓存权限数据如下：\n{}", map);
+        log.debug("ApiAccessVoter 初始化工作完成，缓存权限数据如下：");
+        map.forEach((k, v) -> {
+                log.debug("{} : {}", k, v);
+        });
     }
 
     @Override

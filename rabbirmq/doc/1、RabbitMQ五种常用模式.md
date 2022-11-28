@@ -1,4 +1,3 @@
-
 # 简单模式
 
 ![简单模式数据流图](./images/简单模式数据流图.png)
@@ -30,3 +29,28 @@
 > 通配符模式是路由模式的一种进阶，交换机与队列之间依然需要通过路由键绑定，但是这是一种规则的绑定。  
 > 生产者在投递消息的时候只要满足指定的规则交换机就会为其分配对应的队列，于是生产者在投递消息时只要满足对应的规则即可被多个消费者处理。  
 > 与路由模式最大的区别是：路由模式只能绑定一个定值，消费者每次投递的消息只能由一个对应的消费者来处理，但是通配符模式中只要满足规则可以由多个消费者处理。
+
+# RabbitMQ 发送对象
+
+1. 导包
+
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+    <version>2.9.10</version>
+</dependency>
+```
+
+2. 配置
+
+```java 
+@Bean
+public MessageConverter jsonMessageConverter(){
+    return new Jackson2JsonMessageConverter();
+}
+```
+
+3. 生产者和消费者直接收发对象即可。
+
+> 注意：发送的对象必须包含无参构造函数

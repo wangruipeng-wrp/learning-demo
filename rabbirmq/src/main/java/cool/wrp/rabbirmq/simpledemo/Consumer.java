@@ -42,7 +42,9 @@ public class Consumer {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            RabbitmqUtil.close(connection, channel);
+            if (connection != null) {
+                RabbitmqUtil.close(connection, channel);
+            }
         }
     }
 }
